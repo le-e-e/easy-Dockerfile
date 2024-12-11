@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dockerfile Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='images/docker-logo.png') }}" alt="Docker Logo" class="logo">
+        <h1>Dockerfile Generator</h1>
+    </div>
+    
+    <div class="container">
+        <div class="left-panel">
+            <!-- Step 1: 기본 설정 -->
+            <div class="step" id="step1">
+                <h2>
+                    <span class="step-number">1</span>
+                    기본 설정
+                    <span class="step-desc">이미지의 기본 정보를 설정합니다</span>
+                </h2>
+                <div class="form-group">
+                    <label>
+                        베이스 이미지
+                        <i class="fas fa-info-circle tooltip" 
+                           data-tooltip="도커 허브의 공식 이미지나 커스텀 이미지를 지정합니다"></i>
+                    </label>
+                    <div class="image-selector">
+                        <select name="common_images" id="commonImages">
+                            <option value="">자주 사용되는 이미지 선택</option>
+                            <optgroup label="Python">
+                                <option value="python:3.12">Python 3.12</option>
+                                <option value="python:3.11">Python 3.11</option>
+                                <option value="python:3.10">Python 3.10</option>
+                                <option value="python:3.9">Python 3.9</option>
+                                <option value="python:3.8">Python 3.8</option>
+                            </optgroup>
+                            <optgroup label="Node.js">
+                                <option value="node:20">Node.js 20</option>
+                                <option value="node:18">Node.js 18</option>
+                                <option value="node:16">Node.js 16</option>
+                            </optgroup>
+                            <optgroup label="Java">
+                                <option value="openjdk:17">OpenJDK 17</option>
+                                <option value="openjdk:11">OpenJDK 11</option>
+                                <option value="openjdk:8">OpenJDK 8</option>
+                            </optgroup>
+                            <optgroup label="PHP">
+                                <option value="php:8.2-apache">PHP 8.2 Apache</option>
+                                <option value="php:8.1-fpm">PHP 8.1 FPM</option>
+                            </optgroup>
+                            <optgroup label="Web Servers">
+                                <option value="nginx:latest">Nginx Latest</option>
+                                <option value="httpd:latest">Apache Latest</option>
+                            </optgroup>
+                            <optgroup label="Base OS">
+                                <option value="ubuntu:22.04">Ubuntu 22.04</option>
+                                <option value="debian:11">Debian 11</option>
+                                <option value="alpine:latest">Alpine Latest</option>
+                            </optgroup>
+                        </select>
+                        <input type="text" name="base_image" placeholder="예: python:3.9-slim">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        작업 디렉토리
+                        <i class="fas fa-info-circle tooltip" 
+                           data-tooltip="컨테이너 내부의 작업 디렉토리를 설정합니다"></i>
+                    </label>
+                    <input type="text" name="workdir" placeholder="예: /app">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        라벨 (LABEL)
+                        <i class="fas fa-info-circle tooltip" 
+                           data-tooltip="이미지에 메타데이터를 추가합니다"></i>
+                    </label>
+                    <div class="label-inputs">
+                        <div class="input-group">
+                            <input type="text" placeholder="키" class="label-key">
+                            <input type="text" placeholder="값" class="label-value">
+                            <button type="button" onclick="addLabel()" class="add-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div id="labels" class="label-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: 환경 설정 -->
+            <div class="step" id="step2" style="display: none;">
+                <h2>
+                    <span class="step-number">2</span>
+                    환경 설정
+                    <span class="step-desc">포트와 환경변수를 설정합니다</span>
+                </h2>
+                <div class="form-group">
+                    <label>
+                        포트 (EXPOSE)
+                        <i class="fas fa-info-circle tooltip" 
+                           data-tooltip="컨테이너가 실행 시 사용할 포트를 지정합니다"></i>
+                    </label>
+                    <div class="port-inputs">
+                        <div class="input-group">
+                            <input type="number" placeholder="포트 번호" class="port-number">
+                            <select class="port-protocol">
+                                <option value="tcp">TCP</option>
+                                <option value="udp">UDP</option>
+                            </select>
+                            <button type="button" onclick="addPort()" class="add-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div id="ports" class="port-list"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        환경변수 (ENV)
+                        <i class="fas fa-info-circle tooltip" 
+                           data-tooltip="컨테이너 실행 시 사용될 환경변수를 설정합니다"></i>
+                    </label>
+                    <div class="env-inputs">
+                        <div class="input-group">
+                            <input type="text" placeholder="키" class="env-key">
+                            <input type="text" placeholder="값" class="env-value">
+                            <button type="button" onclick="addEnv()" class="add-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div id="envs" class="env-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: 파일 및 의존성 -->
+            <div class="step" id="step3" style="display: none;">
+                <h2>
+                    <span class="step-number">3</span>
+                    파일 및 의존성
+                    <span class="step-desc">파일 복사와 명령어를 설정합니다</span>
+                </h2>
+                
+                <div class="form-group">
+                    <label>
+                        파일 복사 (COPY)
+                        <i class="fas fa-info-circle tooltip" 
+                           data-tooltip="호스트에서 컨테이너로 파일을 복사합니다"></i>
+                    </label>
+                    <div class="copy-inputs">
+                        <div class="input-group">
+                            <input type="text" placeholder="소스 경로" class="copy-src">
+                            <span>→</span>
+                            <input type="text" placeholder="대상 경로" class="copy-dest">
+                            <button type="button" onclick="addCopy()" class="add-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div id="copies" class="copy-list"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        기본 패키지 설치
+                        <i class="fas fa-info-circle tooltip" 
+                           data-tooltip="이미지에 기본적으로 필요한 패키지들을 선택합니다"></i>
+                    </label>
+                    <div class="package-selector" id="packageSelector">
+                        <!-- JavaScript로 동적 생성됨 -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        실행 명령어 (RUN)
+                        <i class="fas fa-info-circle tooltip" 
+                           data-tooltip="이미지 빌드 시 실행할 명령어를 설정합니다"></i>
+                    </label>
+                    <div class="run-inputs">
+                        <div class="input-group">
+                            <input type="text" placeholder="실행할 명령어" class="run-command">
+                            <button type="button" onclick="addRun()" class="add-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div id="runs" class="run-list"></div>
+                    </div>
+                </div>
+            </div>
+                        <!-- Step 4: 실행 설정 -->
+                        <div class="step" id="step4" style="display: none;">
+                            <h2>
+                                <span class="step-number">4</span>
+                                실행 설정
+                                <span class="step-desc">컨테이너 실행 설정을 지정합니다</span>
+                            </h2>
+            
+                            <!-- 고급 설정 토글을 step4로 이동 -->
+                            <div class="advanced-toggle">
+                                <label class="toggle">
+                                    <input type="checkbox" id="advancedToggle" onchange="toggleAdvancedSettings()">
+                                    <span class="slider"></span>
+                                    고급 설정 보기
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>
+                                    진입점 (ENTRYPOINT)
+                                    <i class="fas fa-info-circle tooltip" 
+                                       data-tooltip="컨테이너가 시작될 때 실행할 기본 명령어를 설정합니다"></i>
+                                </label>
+                                <div class="entrypoint-inputs">
+                                    <div class="input-group">
+                                        <input type="text" placeholder="예: python3" class="entrypoint-command">
+                                        <button type="button" onclick="addEntrypoint()" class="add-btn">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div id="entrypoints" class="entrypoint-list"></div>
+                                </div>
+                                <small class="help-text">* ENTRYPOINT는 컨테이너의 주 실행 명령어를 지정합니다.</small>
+                            </div>
+            
+                            <div class="form-group">
+                                <label>
+                                    실행 명령어 (CMD)
+                                    <i class="fas fa-info-circle tooltip" 
+                                       data-tooltip="ENTRYPOINT에 전달할 인자나 기본 실행 명령어를 설정합니다"></i>
+                                </label>
+                                <div class="cmd-inputs">
+                                    <div class="input-group">
+                                        <input type="text" placeholder="예: app.py" class="cmd-command">
+                                        <button type="button" onclick="addCmd()" class="add-btn">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div id="cmds" class="cmd-list"></div>
+                                </div>
+                                <small class="help-text">* CMD는 ENTRYPOINT의 기본 인자나 독립 실행 명령어를 지정합니다.</small>
+                            </div>
+                        </div>
+            
+                        <!-- Step 5: 고급 설정 -->
+                        <div class="step" id="step5" style="display: none;">
+                            <h2>
+                                <span class="step-number">5</span>
+                                고급 설정
+                                <span class="step-desc">추가적인 도커 설정을 지정합니다</span>
+                            </h2>
+                            
+                            <div class="form-group">
+                                <label>
+                                    VOLUME
+                                    <i class="fas fa-info-circle tooltip" 
+                                       data-tooltip="컨테이너의 데이터 볼륨을 설정합니다"></i>
+                                </label>
+                                <div class="volume-inputs">
+                                    <div class="input-group">
+                                        <input type="text" placeholder="볼륨 경로" class="volume-path">
+                                        <button type="button" onclick="addVolume()" class="add-btn">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div id="volumes" class="volume-list"></div>
+                                </div>
+                            </div>
+            
+                            <div class="form-group">
+                                <label>
+                                    USER
+                                    <i class="fas fa-info-circle tooltip" 
+                                       data-tooltip="컨테이너에서 사용할 사용자를 설정합니다"></i>
+                                </label>
+                                <input type="text" name="user" placeholder="예: nginx">
+                            </div>
+            
+                            <div class="form-group">
+                                <label>
+                                    SHELL
+                                    <i class="fas fa-info-circle tooltip" 
+                                       data-tooltip="기본 셸을 변경합니다"></i>
+                                </label>
+                                <div class="shell-inputs">
+                                    <div class="input-group">
+                                        <input type="text" placeholder='예: ["/bin/bash", "-c"]' class="shell-command">
+                                        <button type="button" onclick="addShell()" class="add-btn">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div id="shells" class="shell-list"></div>
+                                </div>
+                            </div>
+            
+                            <div class="form-group">
+                                <label>
+                                    HEALTHCHECK
+                                    <i class="fas fa-info-circle tooltip" 
+                                       data-tooltip="컨테이너 상태 체크 명령어를 설정합니다"></i>
+                                </label>
+                                <div class="healthcheck-inputs">
+                                    <div class="input-group">
+                                        <input type="text" placeholder="상태 체크 명령어" class="healthcheck-command">
+                                        <input type="number" placeholder="간격(초)" class="healthcheck-interval">
+                                        <button type="button" onclick="addHealthcheck()" class="add-btn">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div id="healthchecks" class="healthcheck-list"></div>
+                                </div>
+                            </div>
+                        </div>
+            
+                        <div class="navigation-buttons">
+                            <button type="button" id="prevBtn" onclick="prevStep()" class="nav-btn">
+                                <i class="fas fa-arrow-left"></i> 이전
+                            </button>
+                            <button type="button" id="nextBtn" onclick="nextStep()" class="nav-btn">
+                                다음 <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button type="button" onclick="downloadDockerfile()" class="download-btn" style="display: none;">
+                                <i class="fas fa-download"></i> Dockerfile 다운로드
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="right-panel">
+                        <div class="preview">
+                            <div class="preview-header">
+                                <h2>Dockerfile 미리보기</h2>
+                                <button type="button" onclick="copyToClipboard()" class="copy-btn" id="copyBtn">
+                                    <i class="fas fa-copy"></i> 복사
+                                </button>
+                            </div>
+                            <pre><code id="dockerfilePreview" class="language-dockerfile line-numbers"></code></pre>
+                        </div>
+                    </div>
+                </div>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-docker.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+                <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+            </body>
+            </html>

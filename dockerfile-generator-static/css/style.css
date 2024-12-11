@@ -1,0 +1,322 @@
+:root {
+    --docker-blue: #2496ED;
+    --docker-dark-blue: #0B214A;
+    --light-gray: #f5f5f5;
+    --border-color: #ddd;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: var(--light-gray);
+}
+
+.header {
+    background-color: white;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo {
+    height: 40px;
+}
+
+.container {
+    display: flex;
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.left-panel {
+    flex: 1;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.right-panel {
+    width: 40%;
+    position: sticky;
+    top: 2rem;
+    align-self: flex-start;
+}
+
+.preview {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.step {
+    margin-bottom: 2rem;
+}
+
+.step h2 {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--docker-dark-blue);
+}
+
+.step-number {
+    background-color: var(--docker-blue);
+    color: white;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0.9rem;
+}
+
+.step-desc {
+    font-size: 0.9rem;
+    font-weight: normal;
+    color: #666;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--docker-dark-blue);
+}
+
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    flex: 1;
+}
+
+.add-btn,
+.remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: #666;
+}
+
+.add-btn:hover {
+    color: var(--docker-blue);
+}
+
+.remove-btn:hover {
+    color: #dc3545;
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.navigation-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.nav-btn,
+.download-btn,
+.copy-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.nav-btn {
+    background-color: var(--docker-blue);
+    color: white;
+}
+
+.nav-btn:hover {
+    background-color: #1b7ac4;
+}
+
+.download-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.download-btn:hover {
+    background-color: #218838;
+}
+
+.copy-btn {
+    background-color: var(--docker-blue);
+    color: white;
+}
+
+.copy-btn:hover {
+    background-color: #1b7ac4;
+}
+
+.tooltip {
+    position: relative;
+    cursor: help;
+    margin-left: 0.5rem;
+}
+
+.tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.package-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.package-btn {
+    background-color: var(--light-gray);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.package-btn.selected {
+    background-color: var(--docker-blue);
+    color: white;
+    border-color: var(--docker-blue);
+}
+
+.advanced-toggle {
+    margin: 1rem 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--docker-blue);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* 코드 미리보기 스타일 */
+pre {
+    margin: 0 !important;
+    border-radius: 4px;
+}
+
+.line-numbers .line-numbers-rows {
+    border-right: 1px solid #999 !important;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .right-panel {
+        width: 100%;
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .left-panel,
+    .right-panel {
+        padding: 1rem;
+    }
+} 

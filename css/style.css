@@ -146,6 +146,7 @@ input:focus, select:focus {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .package-btn {
@@ -160,6 +161,10 @@ input:focus, select:focus {
 }
 
 .package-btn:hover {
+    background-color: #e1e4e8;
+}
+
+.package-btn.selected {
     background-color: var(--docker-blue);
     color: white;
     border-color: var(--docker-blue);
@@ -382,4 +387,11 @@ input:checked + .slider {
 
 input:checked + .slider:before {
     transform: translateX(26px);
+}
+
+.package-installation {
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-top: 1rem;
 }

@@ -1,3 +1,114 @@
+// 기본 패키지 정의
+const defaultPackages = {
+    'python': {
+        manager: 'pip',
+        packages: [
+            'flask',
+            'django',
+            'requests',
+            'pandas',
+            'numpy',
+            'pytest',
+            'sqlalchemy',
+            'pillow',
+            'gunicorn'
+        ]
+    },
+    'node': {
+        manager: 'npm',
+        packages: [
+            'express',
+            'react',
+            'vue',
+            'next',
+            'typescript',
+            'jest',
+            'nodemon',
+            'axios',
+            'dotenv'
+        ]
+    },
+    'openjdk': {
+        manager: 'apt-get',
+        packages: [
+            'maven',
+            'gradle',
+            'git',
+            'curl',
+            'wget',
+            'vim'
+        ]
+    },
+    'php': {
+        manager: 'apt-get',
+        packages: [
+            'php-mysql',
+            'php-pgsql',
+            'php-redis',
+            'php-gd',
+            'php-xml',
+            'php-mbstring',
+            'composer'
+        ]
+    },
+    'nginx': {
+        manager: 'apt-get',
+        packages: [
+            'curl',
+            'vim',
+            'certbot',
+            'python3-certbot-nginx',
+            'apache2-utils'
+        ]
+    },
+    'httpd': {
+        manager: 'apt-get',
+        packages: [
+            'curl',
+            'vim',
+            'ssl-cert',
+            'mod_ssl',
+            'apache2-utils'
+        ]
+    },
+    'ubuntu': {
+        manager: 'apt-get',
+        packages: [
+            'curl',
+            'wget',
+            'git',
+            'vim',
+            'build-essential',
+            'ca-certificates',
+            'unzip'
+        ]
+    },
+    'debian': {
+        manager: 'apt-get',
+        packages: [
+            'curl',
+            'wget',
+            'git',
+            'vim',
+            'build-essential',
+            'ca-certificates',
+            'unzip'
+        ]
+    },
+    'alpine': {
+        manager: 'apk',
+        packages: [
+            'curl',
+            'wget',
+            'git',
+            'vim',
+            'build-base',
+            'ca-certificates',
+            'unzip'
+        ]
+    }
+};
+
 let currentStep = 1;
 const totalSteps = 4;
 
@@ -41,6 +152,7 @@ function collectFormData() {
         ports: [],
         copies: [],
         runs: [],
+        entrypoint: '',
         cmds: [],
         volumes: [],
         user: document.querySelector('input[name="user"]').value,
@@ -100,6 +212,12 @@ function collectFormData() {
             command: command
         });
     });
+
+    // ENTRYPOINT 수집
+    const entrypointInput = document.querySelector('#entrypoints input');
+    if (entrypointInput) {
+        data.entrypoint = entrypointInput.value;
+    }
 
     return data;
 }
@@ -292,108 +410,122 @@ function addHealthcheck() {
     }
 }
 
+// ENTRYPOINT 추가
+function addEntrypoint() {
+    const command = document.querySelector('.entrypoint-command').value.trim();
+    
+    if (command) {
+        const entrypointsDiv = document.getElementById('entrypoints');
+        // 기존 엔트리포인트가 있다면 제거 (하나만 허용)
+        entrypointsDiv.innerHTML = '';
+        
+        const entrypointGroup = document.createElement('div');
+        entrypointGroup.className = 'input-group';
+        entrypointGroup.innerHTML = `
+            <input type="text" value="${command}" readonly>
+            <button type="button" onclick="removeElement(this.parentElement)" class="remove-btn">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        entrypointsDiv.appendChild(entrypointGroup);
+        document.querySelector('.entrypoint-command').value = '';
+        updatePreview();
+    }
+}
+
 // Dockerfile 생성
 function generateDockerfileContent(data) {
-    const dockerfile = [];
-    
-    // 베이스 이미지
-    if (data.baseImage) {
-        dockerfile.push(`FROM ${data.baseImage}`);
-        dockerfile.push("");
-    }
+    let content = `FROM ${data.baseImage}\n`;
     
     // 라벨
     if (Object.keys(data.labels).length > 0) {
         for (const [key, value] of Object.entries(data.labels)) {
-            dockerfile.push(`LABEL ${key}="${value}"`);
+            content += `LABEL ${key}="${value}"\n`;
         }
-        dockerfile.push("");
+        content += "\n";
     }
     
     // 작업 디렉토리
     if (data.workdir) {
-        dockerfile.push(`WORKDIR ${data.workdir}`);
-        dockerfile.push("");
+        content += `WORKDIR ${data.workdir}\n`;
+        content += "\n";
     }
     
     // 환경변수
     if (data.env && data.env.length > 0) {
         data.env.forEach(env => {
             if (env.key && env.value) {
-                dockerfile.push(`ENV ${env.key}=${env.value}`);
+                content += `ENV ${env.key}=${env.value}\n`;
             }
         });
-        dockerfile.push("");
+        content += "\n";
     }
     
     // 포트
     if (data.ports && data.ports.length > 0) {
         data.ports.forEach(port => {
             if (port.number && port.protocol) {
-                dockerfile.push(`EXPOSE ${port.number}/${port.protocol}`);
+                content += `EXPOSE ${port.number}/${port.protocol}\n`;
             }
         });
-        dockerfile.push("");
+        content += "\n";
     }
     
     // 볼륨
     if (data.volumes && data.volumes.length > 0) {
         data.volumes.forEach(volume => {
-            dockerfile.push(`VOLUME ${volume}`);
+            content += `VOLUME ${volume}\n`;
         });
-        dockerfile.push("");
+        content += "\n";
     }
     
     // 사용자
     if (data.user) {
-        dockerfile.push(`USER ${data.user}`);
-        dockerfile.push("");
+        content += `USER ${data.user}\n`;
+        content += "\n";
     }
     
     // 셸
     if (data.shells && data.shells.length > 0) {
         data.shells.forEach(shell => {
-            dockerfile.push(`SHELL ${shell}`);
+            content += `SHELL ${shell}\n`;
         });
-        dockerfile.push("");
+        content += "\n";
     }
     
     // 파일 복사
     if (data.copies && data.copies.length > 0) {
         data.copies.forEach(copy => {
             if (copy.src && copy.dest) {
-                dockerfile.push(`COPY ${copy.src} ${copy.dest}`);
+                content += `COPY ${copy.src} ${copy.dest}\n`;
             }
         });
-        dockerfile.push("");
+        content += "\n";
     }
     
     // RUN 명령어
     if (data.runs && data.runs.length > 0) {
         data.runs.forEach(run => {
             if (run) {
-                dockerfile.push(`RUN ${run}`);
+                content += `RUN ${run}\n`;
             }
         });
-        dockerfile.push("");
+        content += "\n";
     }
     
     // HEALTHCHECK
     if (data.healthchecks && data.healthchecks.length > 0) {
         data.healthchecks.forEach(check => {
             if (check.command && check.interval) {
-                dockerfile.push(`HEALTHCHECK --interval=${check.interval}s CMD ${check.command}`);
+                content += `HEALTHCHECK --interval=${check.interval}s CMD ${check.command}\n`;
             }
         });
-        dockerfile.push("");
+        content += "\n";
     }
     
     // ENTRYPOINT
     if (data.entrypoint) {
-        const parts = data.entrypoint.split(' ');
-        const entrypointFormatted = '[' + parts.map(part => `"${part}"`).join(', ') + ']';
-        dockerfile.push(`ENTRYPOINT ${entrypointFormatted}`);
-        dockerfile.push("");
+        content += `ENTRYPOINT ["${data.entrypoint}"]\n`;
     }
     
     // CMD
@@ -401,16 +533,16 @@ function generateDockerfileContent(data) {
         data.cmds.forEach(cmd => {
             const parts = cmd.split(' ');
             const cmdFormatted = '[' + parts.map(part => `"${part}"`).join(', ') + ']';
-            dockerfile.push(`CMD ${cmdFormatted}`);
+            content += `CMD ${cmdFormatted}\n`;
         });
     }
     
     // 마지막 빈 줄 제거
-    while (dockerfile.length > 0 && !dockerfile[dockerfile.length - 1]) {
-        dockerfile.pop();
+    while (content.length > 0 && !content[content.length - 1]) {
+        content = content.slice(0, -1);
     }
     
-    return dockerfile.join('\n');
+    return content;
 }
 
 // 미리보기 업데이트
@@ -464,6 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('commonImages').addEventListener('change', function() {
         if (this.value) {
             document.querySelector('input[name="base_image"]').value = this.value;
+            updatePackageList(this.value);
             updatePreview();
         }
     });
@@ -486,12 +619,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (inputClass.includes('volume-path')) addVolume();
                 else if (inputClass.includes('shell-command')) addShell();
                 else if (inputClass.includes('healthcheck-interval')) addHealthcheck();
+                else if (inputClass.includes('entrypoint-command')) addEntrypoint();
             }
         });
     });
 });
 
-// 패키지 관련 함수들
+// 선택된 패키지들을 저장할 Set
+let selectedPackages = new Set();
+
 function updatePackageList(image) {
     const imageType = image.split(':')[0].toLowerCase();
     const packages = defaultPackages[imageType];
@@ -502,52 +638,87 @@ function updatePackageList(image) {
             <div class="package-selector">
                 <div class="common-packages">
                     ${packages.packages.map(pkg => `
-                        <button type="button" class="package-btn" onclick="addPackage('${pkg}')">
+                        <button type="button" class="package-btn" 
+                                onclick="togglePackage('${pkg}', '${packages.manager}')"
+                                data-package="${pkg}">
                             ${pkg}
                         </button>
                     `).join('')}
                 </div>
             </div>
         `;
+        updatePackageCommand(packages.manager);
     } else {
         packageListDiv.innerHTML = '';
+        selectedPackages.clear();
+        updatePackageCommand(null);
     }
 }
 
-function addPackage(packageName) {
-    const imageType = document.querySelector('input[name="base_image"]').value.split(':')[0].toLowerCase();
-    const packages = defaultPackages[imageType];
+function togglePackage(packageName, manager) {
+    const btn = document.querySelector(`.package-btn[data-package="${packageName}"]`);
     
-    if (packages) {
-        const runsDiv = document.getElementById('runs');
-        const runGroup = document.createElement('div');
-        runGroup.className = 'input-group';
-        
-        let installCommand = '';
-        switch (packages.manager) {
-            case 'pip':
-                installCommand = `pip install ${packageName}`;
-                break;
-            case 'npm':
-                installCommand = `npm install ${packageName}`;
-                break;
-            case 'apt-get':
-                installCommand = `apt-get update && apt-get install -y ${packageName}`;
-                break;
-            case 'apk':
-                installCommand = `apk add --no-cache ${packageName}`;
-                break;
-            default:
-                return;
+    if (selectedPackages.has(packageName)) {
+        selectedPackages.delete(packageName);
+        btn.classList.remove('selected');
+    } else {
+        selectedPackages.add(packageName);
+        btn.classList.add('selected');
+    }
+    
+    updatePackageCommand(manager);
+}
+
+function updatePackageCommand(manager) {
+    const runsDiv = document.getElementById('runs');
+    const existingPackageRun = runsDiv.querySelector('.package-installation');
+    
+    if (selectedPackages.size === 0) {
+        if (existingPackageRun) {
+            existingPackageRun.remove();
         }
-        
+        return;
+    }
+
+    let installCommand = '';
+    switch (manager) {
+        case 'pip':
+            installCommand = `pip install ${Array.from(selectedPackages).join(' ')}`;
+            break;
+        case 'npm':
+            installCommand = `npm install ${Array.from(selectedPackages).join(' ')}`;
+            break;
+        case 'apt-get':
+            installCommand = `apt-get update && apt-get install -y ${Array.from(selectedPackages).join(' ')}`;
+            break;
+        case 'apk':
+            installCommand = `apk add --no-cache ${Array.from(selectedPackages).join(' ')}`;
+            break;
+        default:
+            return;
+    }
+
+    if (existingPackageRun) {
+        existingPackageRun.querySelector('input').value = installCommand;
+    } else {
+        const runGroup = document.createElement('div');
+        runGroup.className = 'input-group package-installation';
         runGroup.innerHTML = `
             <input type="text" value="${installCommand}" readonly>
-            <button type="button" onclick="removeElement(this.parentElement)" class="remove-btn">
+            <button type="button" onclick="clearPackages()" class="remove-btn">
                 <i class="fas fa-trash"></i>
             </button>
         `;
-        runsDiv.appendChild(runGroup);
-        updatePreview();
+        runsDiv.insertBefore(runGroup, runsDiv.firstChild);
     }
+    updatePreview();
+}
+
+function clearPackages() {
+    selectedPackages.clear();
+    document.querySelectorAll('.package-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    document.querySelector('.package-installation')?.remove();
+    updatePreview();
 }

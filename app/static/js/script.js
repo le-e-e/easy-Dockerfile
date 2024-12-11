@@ -352,7 +352,17 @@ function collectFormData() {
         }),
         runs: Array.from(document.querySelectorAll('#runs .input-group input')).map(input => input.value),
         cmds: Array.from(document.querySelectorAll('#cmds .input-group input')).map(input => input.value),
-        entrypoint: Array.from(document.querySelectorAll('#entrypoints .input-group input')).map(input => input.value)[0]
+        entrypoint: Array.from(document.querySelectorAll('#entrypoints .input-group input')).map(input => input.value)[0],
+        volumes: Array.from(document.querySelectorAll('#volumes .input-group input')).map(input => input.value),
+        user: document.querySelector('input[name="user"]')?.value,
+        shells: Array.from(document.querySelectorAll('#shells .input-group input')).map(input => input.value),
+        healthchecks: Array.from(document.querySelectorAll('#healthchecks .input-group input')).map(input => {
+            const [interval, ...command] = input.value.split(' ');
+            return {
+                interval: interval.replace('--interval=', '').replace('s', ''),
+                command: command.join(' ')
+            };
+        })
     };
 
     // 라벨 데이터 수집
